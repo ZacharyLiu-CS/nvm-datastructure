@@ -58,7 +58,7 @@ struct list_node_t {
 };
 
 void list_node_t::printAll(void) { 
-  printf("addr=%p, key=%d, ptr=%u, isUpdate=%d, isDelete=%d, next=%p\n", 
+  printf("addr=%p, key=%ld, ptr=%lu, isUpdate=%d, isDelete=%d, next=%p\n", 
           this, this->key, this->ptr, this->isUpdate, this->isDelete, this->next); 
 }
 #ifdef USE_PMDK
@@ -201,7 +201,7 @@ class page{
 
     void *operator new(size_t size) {
       void *ret;
-      posix_memalign(&ret,64,size);
+      int res = posix_memalign(&ret,64,size);
       return ret;
     }
 
@@ -330,7 +330,7 @@ class page{
           return NULL;
         }
 
-        register int num_entries = count();
+        int num_entries = count();
 
         for (int i = 0; i < num_entries; i++)
           if (key == records[i].key) {
@@ -367,7 +367,7 @@ class page{
           // overflow
           // create a new node
           page* sibling = new page(hdr.level); 
-          register int m = (int) ceil(num_entries/2);
+          int m = (int) ceil(num_entries/2);
           entry_key_t split_key = records[m].key;
 
           // migrate half of keys into the sibling
@@ -503,7 +503,7 @@ class page{
           return NULL;
         }
 
-        register int num_entries = count();
+        int num_entries = count();
 
         for (int i = 0; i < num_entries; i++)
           if (key == records[i].key) {
@@ -540,7 +540,7 @@ class page{
           // overflow
           // create a new node
           page* sibling = new page(hdr.level); 
-          register int m = (int) ceil(num_entries/2);
+          int m = (int) ceil(num_entries/2);
           entry_key_t split_key = records[m].key;
 
           // migrate half of keys into the sibling
@@ -813,7 +813,7 @@ class page{
             
             for (i = count() - 1; i > 0; --i) {
               if (debug)
-                printf("line 793, i=%d, records[i].key=%d\n", i,
+                printf("line 793, i=%d, records[i].key=%ld\n", i,
                        records[i].key);
               k = records[i].key;
               k1 = records[i - 1].key;
@@ -934,9 +934,9 @@ class page{
     // print a node 
     void print() {
       if(hdr.leftmost_ptr == NULL) 
-        printf("[%d] leaf %x \n", this->hdr.level, this);
+        printf("[%d] leaf %p \n", this->hdr.level, this);
       else 
-        printf("[%d] internal %x \n", this->hdr.level, this);
+        printf("[%d] internal %p \n", this->hdr.level, this);
       printf("last_index: %d\n", hdr.last_index);
       printf("switch_counter: %d\n", hdr.switch_counter);
       printf("search direction: ");
@@ -946,12 +946,12 @@ class page{
         printf("<-\n");
 
       if(hdr.leftmost_ptr != NULL) 
-        printf("%x ",hdr.leftmost_ptr);
+        printf("%p ",hdr.leftmost_ptr);
 
       for(int i=0;records[i].ptr != NULL;++i)
-        printf("%ld,%x ", records[i].key, records[i].ptr);
+        printf("%ld,%p ", records[i].key, records[i].ptr);
 
-      printf("\n%x ", hdr.sibling_ptr);
+      printf("\n%p ", hdr.sibling_ptr);
 
       printf("\n");
     }
@@ -1230,7 +1230,7 @@ void btree::printAll(){
   pthread_mutex_lock(&print_mtx);
   int total_keys = 0;
   page *leftmost = (page *)root;
-  printf("root: %x\n", root);
+  printf("root: %p\n", root);
   do {
     page *sibling = leftmost;
     while(sibling) {
