@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
@@ -95,7 +96,7 @@ class btree{
 
   public:
     list_node_t *list_head = NULL;
-    btree();
+    btree(std::string db_path = "/mnt/pmem0/tmp-utree",uint64_t pool_size = 40ULL << 30);
     ~btree();
     void setNewRoot(char *);
     void getNumberOfNodes();
@@ -977,22 +978,22 @@ int file_exists(const char *filename) {
   return stat(filename, &buffer);
 }
 
-void openPmemobjPool() {
+void openPmemobjPool(std::string db_path, uint64_t pool_size) {
   printf("use pmdk!\n");
-  char pathname[100] = "/home/fkd/CPTree-202006/mount/pool";
+  std::string pool_path = db_path + "/pool";
   int sds_write_value = 0;
   pmemobj_ctl_set(NULL, "sds.at_create", &sds_write_value);
   if (file_exists(pathname) != 0) {
     printf("create new one.\n");
-    if ((pop = pmemobj_create(pathname, POBJ_LAYOUT_NAME(btree),
-                              (uint64_t)400 * 1024 * 1024 * 1024, 0666)) ==
+    if ((pop = pmemobj_create(pool_path.c_strt(), POBJ_LAYOUT_NAME(btree),
+                              pool_size) ==
         NULL) {
       perror("failed to create pool.\n");
       return;
     }
   } else {
     printf("open existing one.\n");
-    if ((pop = pmemobj_open(pathname, POBJ_LAYOUT_NAME(btree))) == NULL) {
+    if ((pop = pmemobj_open(pool_path.c_str(), POBJ_LAYOUT_NAME(btree))) == NULL) {
       perror("failed to open pool.\n");
       return;
     }
@@ -1002,9 +1003,9 @@ void openPmemobjPool() {
 /*
  * class btree
  */
-btree::btree(){
+btree::btree(std::string db_path, uint64_t pool_size){
 #ifdef USE_PMDK
-  openPmemobjPool();
+  openPmemobjPool(db_path, pool_size);
 #else
   printf("without pmdk!\n");
 #endif
