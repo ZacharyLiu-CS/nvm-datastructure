@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <vector>
 
-#define PAGESIZE 512
+#define U_PAGESIZE 512
 #define CACHE_LINE_SIZE 64
 #define IS_FORWARD(c) (c % 2 == 0)
 
@@ -168,7 +168,7 @@ public:
   friend class btree;
 };
 
-const int cardinality = (PAGESIZE - sizeof(header)) / sizeof(entry);
+const int cardinality = (U_PAGESIZE - sizeof(header)) / sizeof(entry);
 const int count_in_line = CACHE_LINE_SIZE / sizeof(entry);
 
 class page {
